@@ -1,4 +1,4 @@
-
+var ObjectID = require('mongodb').ObjectID;
 
 module.exports = {
 
@@ -10,41 +10,28 @@ module.exports = {
             if (err) { 
                 return resolve({ 'error': 'An error has occurred' }); 
             } else {
-                // res.send({'success': 'Successfully Signed Up.', 'id':result.ops[0]._id});
-                // res.send({'success': 'Login successfull', 'result':result.insertedIds[0]});
                 return resolve({'success': 'Login successfull', 'result':result.insertedIds[0]});
             }
             });
 
         });
-    }
-}
-// module.exports = {
-//     checkSession: function(req, db){
-//         return new Promise(function(resolve, reject){
-//             // console.log(req.);
-//             let id= req.id;
-//             const details = { '_id': new ObjectID(id) };
-//             // const userData = { data: req.data, createdAt: req.createdAt, versionKey: req.versionKey, expiresAt: new Date(new Date(req.createdAt).getTime() + 60 * 60 * 24 * 1000)};
-//             db.collection('sessions').findOne(details, (err, item) => {
-//             if (err) { 
-//                 return resolve({ 'error': 'An error has occurred' }); 
-//             } else {
-//                 const sessData = { data: item.data, usedAt: new Date().toISOString() , versionKey: item.versionKey};
-//                 sessData['expiresAt']= new Date(new Date(sessData.usedAt).getTime() + 60 * 60 * 24 * 1000)
-//                 db.collection('sessions').update(details, sessData, (err, result) => {
-//                 if (err) { 
-//                     return resolve({'error': 'Error while updating session'});
-//                 } else {
-//                     return resolve({'success': 'Session Updated successfull', 'result':result.insertedIds[0]});
-//                 }
-//                 });
-                
-//             }
-//             });
+    },
 
-//         });
-//     }
+    fetchSession: function(req, db){
+        return new Promise(function(resolve, reject){
+            let id= req.id;
+            const details = { '_id': new ObjectID(id) };
+            db.collection('sessions').findOne(details, (err, item) => {
+            if (err) { 
+                return resolve({ 'error': 'An error has occurred' }); 
+            } else {
+                return resolve({'success': 'Session fetched successfull', 'result':item});
+            }
+            });
+
+        });
+    }
+}  
     // sessionStore: function(app, db){
     //     console.log(app);
     //     app.get('/getSession/:id', (req, res) => {

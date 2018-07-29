@@ -1,5 +1,5 @@
 var ObjectID = require('mongodb').ObjectID;
-const sessionRoutes = require('./session-store');
+const sessionStore = require('./session-store');
 
 module.exports = function(app, db) {
     app.post('/login', (req, res)=>{
@@ -13,7 +13,7 @@ module.exports = function(app, db) {
                 console.log("here 1", result);
                 if(result.length === 1){
                         const userData = { data: result[0], createdAt: new Date().toISOString(), versionKey: result[0]._id};
-                        sessionRoutes.createSession(userData, db).then(function(response){
+                        sessionStore.createSession(userData, db).then(function(response){
                             console.log("check this",response);
                             response['userData']= result[0];
                             res.send(response);

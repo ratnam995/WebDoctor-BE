@@ -1,7 +1,9 @@
 var ObjectID = require('mongodb').ObjectID;
+const authMiddleware = require('../auth-middleWare');
+
 
 module.exports = function(app, db) {
-    app.get('/fetchAllRoles', (req, res)=>{
+    app.get('/role/fetchAllRoles', (req, res)=>{
         db.collection('roles').find().toArray((err, result)=>{
             if(err)
                 res.send({'error': 'Error while fetching all records'});
@@ -10,7 +12,7 @@ module.exports = function(app, db) {
             }
         });
     });
-    app.get('/fetchSingleRoles/:id', (req, res) => {
+    app.get('/role/fetchSingleRoles/:id', (req, res) => {
         let id= req.params.id;
         const details = { '_id': new ObjectID(id) };
         db.collection('roles').findOne(details, (err, item) => {
@@ -21,15 +23,23 @@ module.exports = function(app, db) {
           }
         });
     });
-    app.post('/addRoles', (req, res) => {
+    app.post('/role/addRoles', (req, res) => {
         // You'll create your note here.
-        const role = { text: req.body.name, title: req.body.tag };
-        db.collection('roles').insert(role, (err, result) => {
-        if (err) { 
-            res.send({ 'error': 'An error has occurred' }); 
-        } else {
-            res.send(result.ops[0]);
-        }
+        authMiddleware.fetchSession(req, res, db).then((response)=>{
+            console.log("response", response);
+            if(response.hasOwnProperty("error")){
+              res.send(response);
+            }else if(response.hasOwnProperty('success')){
+                const role = { text: req.body.name, title: req.body.tag };
+                db.collection('roles').insert(role, (err, result) => {
+                if (err) { 
+                    res.send({ 'error': 'An error has occurred' }); 
+                } else {
+                    res.send(result.ops[0]);
+                }
+                });
+
+            }
         });
-    });
-};
+    })    
+}

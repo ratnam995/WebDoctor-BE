@@ -1,31 +1,32 @@
 var ObjectID = require('mongodb').ObjectID;
+const authMiddleware = require('../auth-middleWare');
+
 module.exports=function(app, db){
-        // app.get('/fetchUserViaId/:id', (req, res) => {
-        //     let id= req.params.id;
-        //     const details = { '_id': new ObjectID(id) };
-        //     db.collection('users').findOne(details, (err, item) => {
-        //     if (err) {
-        //         res.send({'error':'Error has occurred while fetching user'});
-        //     } else {
-        //         res.send(item);
-        //     }
-        //     });
-        // });
-        app.post('/createSession', (req, res) => {
-            // You'll create your note here.
-            console.log("req", req)
-            const userData = { data: req.body.data, createdAt: req.body.createdAt, versionKey: req.body.versionKey, expiresAt: new Date(new Date(res.body.createdAt).getTime() + 60 * 60 * 24 * 1000)};
-            db.collection('sessions').insert(userData, (err, result) => {
-            if (err) { 
-                res.send({ 'error': 'An error has occurred' }); 
-            } else {
-                // res.send({'success': 'Successfully Signed Up.', 'id':result.ops[0]._id});
-                res.send({'success': 'Login successfull', 'result':result});
-            }
+        app.get('/session/checkSession/:id', (req, res)=>{
+            authMiddleware.fetchSession(req, res, db).then((response)=>{
+                console.log("response", response);
+                if(response.hasOwnProperty("error")){
+                  res.send(response);
+                }else if(response.hasOwnProperty('success')){
+                    const id = req.params.id;
+                    const details = { '_id': new ObjectID(id) };
+                    // const userData = { data: req.body.data, usedAt: req.body.usedAt, versionKey: req.body.versionKey, expiresAt: new Date(new Date(res.body.createdAt).getTime() + 60 * 60 * 24 * 1000)};
+                    db.collection('sessions').findOne(details, (err, result) => {
+                    if (err) { 
+                        res.send({ 'error': 'An error has occurred' }); 
+                    } else {
+                        let resToBeSent={};
+                        resToBeSent['userData']= result.data;
+                        resToBeSent['sessionID']= id
+                        res.send(resToBeSent);
+                    }
+                    });
+                    
+                }
             });
-        });
-        app.put('/setSession/:id', (req, res) => {
-            // You'll create your note here.
+        })
+
+        app.put('/session/setSession/:id', (req, res) => {
             const id = req.params.id;
             const details = { '_id': new ObjectID(id) };
             const userData = { data: req.body.data, usedAt: req.body.usedAt, versionKey: req.body.versionKey, expiresAt: new Date(new Date(res.body.createdAt).getTime() + 60 * 60 * 24 * 1000)};
@@ -38,15 +39,23 @@ module.exports=function(app, db){
             });
         });
 
-        app.delete('/deleteSession/:id', (req, res) => {
-            const id = req.params.id;
-            const details = { '_id': new ObjectID(id) };
-            db.collection('sessions').remove(details, (err, item) => {
-            if (err) {
-                res.send({'error':'An error has occurred'});
-            } else {
-                res.send({'success': 'Session deletion successful'});
-            } 
+        app.delete('/session/deleteSession/:id', (req, res) => {
+            authMiddleware.fetchSession(req, res, db).then((response)=>{
+                console.log("response", response);
+                if(response.hasOwnProperty("error")){
+                  res.send(response);
+                }else if(response.hasOwnProperty('success')){
+                    const id = req.params.id;
+                    const details = { '_id': new ObjectID(id) };
+                    db.collection('sessions').remove(details, (err, item) => {
+                    if (err) {
+                        res.send({'error':'An error has occurred'});
+                    } else {
+                        res.send({'success': 'Session deletion successful'});
+                    } 
+                    });
+                    
+                }
             });
         });
 }    
